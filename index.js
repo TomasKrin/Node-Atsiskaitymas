@@ -60,7 +60,6 @@ app.post('/api/users', async (req, res) => {
         email: req.body.email,
         _id: Date.now(),
       };
-
       console.log(newUser);
 
       const newUserAddress = {
@@ -69,7 +68,6 @@ app.post('/api/users', async (req, res) => {
         city: req.body.city,
         _id: newUser._id,
       };
-
       console.log(newUserAddress);
 
       const conAddress = await client.connect();
