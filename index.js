@@ -112,7 +112,6 @@ app.get('/api/users', async (req, res) => {
         { $unwind: '$address' },
         {
           $project: {
-            outOfDBId: '$outOfDBId',
             name: '$name',
             email: '$email',
             address: { $concat: ['$address.street', ', ', '$address.suite', ', ', '$address.city'] },
@@ -190,10 +189,13 @@ app.get('/api/users/address', async (req, res) => {
         { $unwind: '$address' },
         {
           $project: {
-            outOfDBId: '$outOfDBId',
             name: '$name',
             email: '$email',
-            address:
+            address: {
+              street: '$address.street',
+              suite: '$address.suite',
+              city: '$address.city',
+            },
           },
         },
       ])
