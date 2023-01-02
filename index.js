@@ -53,6 +53,7 @@ app.post('/api/fill', async (req, res) => {
 
 app.post('/api/users', async (req, res) => {
   try {
+    console.log(req.body);
     if (req.body.name && req.body.email && req.body.street && req.body.suite && req.body.city) {
       const newUser = {
         name: req.body.name,
