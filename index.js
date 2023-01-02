@@ -20,14 +20,15 @@ app.post('/api/fill', async (req, res) => {
     const newUsersArr = responseData.map((user) => ({
       name: user.name,
       email: user.email,
-      id: user.id,
+      // outOfDBId paliktas, nes per jį vyks sujungimas su adresų collectionu
+      outOfDBId: user.id,
     }));
 
     const newUsersAddressArr = responseData.map((user) => ({
       street: user.address.street,
       suite: user.address.suite,
       city: user.address.city,
-      id: user.id,
+      outOfDBId: user.id,
     }));
 
     const conAddress = await client.connect();
@@ -57,7 +58,7 @@ app.post('/api/users', async (req, res) => {
       const newUser = {
         name: req.body.name,
         email: req.body.email,
-        id: Date.now(),
+        outOfDBId: Date.now(),
       };
       console.log(newUser);
 
@@ -65,7 +66,7 @@ app.post('/api/users', async (req, res) => {
         street: req.body.street,
         suite: req.body.suite,
         city: req.body.city,
-        id: newUser.id,
+        outOfDBId: newUser.outOfDBId,
       };
       console.log(newUserAddress);
 
@@ -99,7 +100,103 @@ app.get('/api/users', async (req, res) => {
     const data = await con
       .db('user_db')
       .collection('users')
-      .find()
+      .aggregate([
+        {
+          $lookup: {
+            from: 'addresses',
+            localField: 'outOfDBId',
+            foreignField: 'outOfDBId',
+            as: 'address',
+          },
+        },
+        { $unwind: '$address' },
+        {
+          $project: {
+            outOfDBId: '$outOfDBId',
+            name: '$name',
+            email: '$email',
+            address: { $concat: ['$address.street', ', ', '$address.suite', ', ', '$address.city'] },
+          },
+        },
+      ])
+      .toArray();
+    await con.close();
+    console.log(data);
+    res.send(data);
+  } catch (error) {
+    res.status(500).send({ error });
+  }
+});
+
+app.get('/api/users/names', async (req, res) => {
+  try {
+    const con = await client.connect();
+    const data = await con
+      .db('user_db')
+      .collection('users')
+      .aggregate([
+        {
+          $project: {
+            name: '$name',
+          },
+        },
+      ])
+      .toArray();
+    await con.close();
+    console.log(data);
+    res.send(data);
+  } catch (error) {
+    res.status(500).send({ error });
+  }
+});
+
+app.get('/api/users/emails', async (req, res) => {
+  try {
+    const con = await client.connect();
+    const data = await con
+      .db('user_db')
+      .collection('users')
+      .aggregate([
+        {
+          $project: {
+            outOfDBId: 0,
+          },
+        },
+      ])
+      .toArray();
+    await con.close();
+    console.log(data);
+    res.send(data);
+  } catch (error) {
+    res.status(500).send({ error });
+  }
+});
+
+app.get('/api/users/address', async (req, res) => {
+  try {
+    const con = await client.connect();
+    const data = await con
+      .db('user_db')
+      .collection('users')
+      .aggregate([
+        {
+          $lookup: {
+            from: 'addresses',
+            localField: 'outOfDBId',
+            foreignField: 'outOfDBId',
+            as: 'address',
+          },
+        },
+        { $unwind: '$address' },
+        {
+          $project: {
+            outOfDBId: '$outOfDBId',
+            name: '$name',
+            email: '$email',
+            address:
+          },
+        },
+      ])
       .toArray();
     await con.close();
     console.log(data);
