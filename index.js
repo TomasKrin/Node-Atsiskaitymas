@@ -20,15 +20,14 @@ app.post('/api/fill', async (req, res) => {
     const newUsersArr = responseData.map((user) => ({
       name: user.name,
       email: user.email,
-      // outOfDBId paliktas, nes per jį vyks sujungimas su adresų collectionu
-      outOfDBId: user.id,
+      _id: user.id,
     }));
 
     const newUsersAddressArr = responseData.map((user) => ({
       street: user.address.street,
       suite: user.address.suite,
       city: user.address.city,
-      outOfDBId: user.id,
+      _id: user.id,
     }));
 
     const conAddress = await client.connect();
@@ -58,16 +57,18 @@ app.post('/api/users', async (req, res) => {
       const newUser = {
         name: req.body.name,
         email: req.body.email,
-        outOfDBId: Date.now(),
+        _id: Date.now(),
       };
+
       console.log(newUser);
 
       const newUserAddress = {
         street: req.body.street,
         suite: req.body.suite,
         city: req.body.city,
-        outOfDBId: newUser.outOfDBId,
+        _id: newUser._id,
       };
+
       console.log(newUserAddress);
 
       const conAddress = await client.connect();
@@ -104,8 +105,8 @@ app.get('/api/users', async (req, res) => {
         {
           $lookup: {
             from: 'addresses',
-            localField: 'outOfDBId',
-            foreignField: 'outOfDBId',
+            localField: '_id',
+            foreignField: '_id',
             as: 'address',
           },
         },
@@ -155,13 +156,7 @@ app.get('/api/users/emails', async (req, res) => {
     const data = await con
       .db('user_db')
       .collection('users')
-      .aggregate([
-        {
-          $project: {
-            outOfDBId: 0,
-          },
-        },
-      ])
+      .find()
       .toArray();
     await con.close();
     console.log(data);
@@ -181,8 +176,8 @@ app.get('/api/users/address', async (req, res) => {
         {
           $lookup: {
             from: 'addresses',
-            localField: 'outOfDBId',
-            foreignField: 'outOfDBId',
+            localField: '_id',
+            foreignField: '_id',
             as: 'address',
           },
         },
