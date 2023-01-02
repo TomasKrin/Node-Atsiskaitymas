@@ -11,9 +11,6 @@
     },
     "rules": {
         "no-console": "off",
-        "consistent-return": "off",
-        "no-restricted-globals": "off",
-        "no-underscore-dangle": "off",
-        "no-unused-vars": "off"
+        "no-underscore-dangle": "off"
     }
 }
